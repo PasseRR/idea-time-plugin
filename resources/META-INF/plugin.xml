@@ -1,0 +1,45 @@
+<idea-plugin version="2">
+    <id>com.gome.plugin.time</id>
+    <name>Gome Time</name>
+    <vendor email="xie__hai@sina.com" url="https://github.com/PasseRR/idea-time-plugin">
+        PasseRR
+    </vendor>
+
+    <version>1.3</version>
+
+    <description>
+        <![CDATA[
+          <p>
+            用于Gome Time工时更新
+          </p>
+        ]]>
+    </description>
+
+    <change-notes>
+        <![CDATA[
+          <p>
+            v1.0
+            <ul>
+              <li>基本功能版本</li>
+            </ul>
+          </p>
+        ]]>
+    </change-notes>
+
+    <idea-version since-build="141.0"/>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <!-- settings配置 -->
+        <!--<applicationConfigurable instance="com.gome.idea.plugins.time.settings.GJiraConfigurable"/>-->
+        <!--<applicationService serviceInterface="com.gome.idea.plugins.time.GJiraSettings"-->
+                        <!--serviceImplementation="com.gome.idea.plugins.time.GJiraSettings"/>-->
+        <!-- tool window配置 -->
+        <toolWindow id="Gome Time" anchor="bottom" icon="/icon/jira.png"
+                    factoryClass="com.gome.idea.plugins.time.tw.TimeToolWindow"/>
+    </extensions>
+
+    <actions>
+    </actions>
+    <application-components>
+    </application-components>
+</idea-plugin>
