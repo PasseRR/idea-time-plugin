@@ -181,26 +181,52 @@ class TimeToolWindowView extends IdeaView {
                 [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 4]
             ]
             rootPanel.add(super.sb.panel() {
-                boxLayout(axis: BoxLayout.Y_AXIS)
-                label(text: DateUtils.longToDateString(date))
-                label(text: "草稿箱")
-                table() {
-                    tableModel(list: data) {
-                        propertyColumn(header: "工时对象", propertyName: "target")
-                        propertyColumn(header: "工时分类", propertyName: "type")
-                        propertyColumn(header: "项目", propertyName: "project")
-                        propertyColumn(header: "项目经理", propertyName: "manager")
-                        propertyColumn(header: "工时", propertyName: "hours")
+                tableLayout {
+                    tr {
+                        td(align: "left") {
+                            label(text: DateUtils.longToDateString(date))
+                        }
                     }
-                }
-                label(text: "已提交")
-                table() {
-                    sb.tableModel(list: data) {
-                        propertyColumn(header: "工时对象", propertyName: "target")
-                        propertyColumn(header: "工时分类", propertyName: "type")
-                        propertyColumn(header: "项目", propertyName: "project")
-                        propertyColumn(header: "项目经理", propertyName: "manager")
-                        propertyColumn(header: "工时", propertyName: "hours")
+                    // empty line
+                    tr { td { label(text: "") } }
+                    tr {
+                        td(align: "left") {
+                            label(text: "草稿箱")
+                        }
+                    }
+                    tr {
+                        td(align: "left") {
+                            table(enabled: false) {
+                                tableModel(list: data) {
+                                    propertyColumn(header: "工时对象", propertyName: "target")
+                                    propertyColumn(header: "工时分类", propertyName: "type")
+                                    propertyColumn(header: "项目", propertyName: "project")
+                                    propertyColumn(header: "项目经理", propertyName: "manager")
+                                    propertyColumn(header: "工时", propertyName: "hours")
+                                }
+                            }
+//                            widget(tab.tableHeader)
+                        }
+                    }
+                    // empty line
+                    tr { td { label(text: "") } }
+                    tr {
+                        td(align: "left") {
+                            label(text: "已提交")
+                        }
+                    }
+                    tr {
+                        td(align: "left") {
+                            table(enabled: false) {
+                                tableModel(list: data) {
+                                    propertyColumn(header: "工时对象", propertyName: "target")
+                                    propertyColumn(header: "工时分类", propertyName: "type")
+                                    propertyColumn(header: "项目", propertyName: "project")
+                                    propertyColumn(header: "项目经理", propertyName: "manager")
+                                    propertyColumn(header: "工时", propertyName: "hours")
+                                }
+                            }
+                        }
                     }
                 }
             }, 1)
