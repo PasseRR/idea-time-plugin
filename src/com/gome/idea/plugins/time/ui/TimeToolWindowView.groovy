@@ -1,11 +1,14 @@
 package com.gome.idea.plugins.time.ui
 
+import com.gome.idea.plugins.time.utils.DateUtils
 import com.gome.idea.plugins.time.vo.DayVo
 import com.gome.idea.plugins.time.vo.MonthVo
 import com.gome.idea.plugins.time.vo.WeekVo
 
+import javax.swing.*
 import java.awt.*
 import java.awt.event.ActionEvent
+
 /**
  * Gome Time ToolWindow视图
  * @author xiehai1
@@ -31,19 +34,26 @@ class TimeToolWindowView extends IdeaView {
         def monthVo = this.getMonthVo(this.month)
         // 绘制日历
         super.scrollPane.setViewportView(
-            super.sb.panel(layout: new BorderLayout()) {
+            // 网格布局
+            super.sb.panel(layout: new GridLayout(1, 2)) {
                 // 日历
-                panel(constraints: BorderLayout.NORTH) {
+                panel() {
                     tableLayout {
                         tr {
                             td { label(text: "") }
                             td(align: "center") {
-                                button(text: "<<", toolTipText: "上一月", actionPerformed: { this.previousMonth()})
+                                button(text: "<<", toolTipText: "上一月", actionPerformed: { this.previousMonth() })
                             }
                             td(align: "center", colspan: 2) { label(text: this.month) }
-                            td(align: "center") { button(text: ">>", toolTipText: "下一月", actionPerformed: { this.nextMonth() }) }
-                            td(align: "center") { label(text: "<html>出勤:<font color='green'>${monthVo.workHours}</font>h<html>") }
-                            td(align: "center") { label(text: "<html>缺勤:<font color='red'>${monthVo.restHours}</font>h<html>") }
+                            td(align: "center") {
+                                button(text: ">>", toolTipText: "下一月", actionPerformed: { this.nextMonth() })
+                            }
+                            td(align: "center") {
+                                label(text: "<html>出勤:<font color='green'>${monthVo.workHours}</font>h<html>")
+                            }
+                            td(align: "center") {
+                                label(text: "<html>缺勤:<font color='red'>${monthVo.restHours}</font>h<html>")
+                            }
                         }
                         tr {
                             WEEKDAYS.each { day ->
@@ -62,6 +72,10 @@ class TimeToolWindowView extends IdeaView {
                             }
                         }
                     }
+                }
+                // 工时明细
+                panel(name: "detail") {
+
                 }
             }
         )
@@ -157,6 +171,41 @@ class TimeToolWindowView extends IdeaView {
         def button = super.sb.button(preferredSize: new Dimension(60, 40), actionCommand: day.datetime as String, actionPerformed: { ActionEvent event ->
             // 按钮命令
             def date = event.getActionCommand() as long
+            // TODO 明细数据填充
+            def rootPanel = super.scrollPane.getViewport().getView() as JPanel
+            rootPanel.remove(1)
+            def data = [
+                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 1],
+                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 2],
+                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 3],
+                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 4]
+            ]
+            rootPanel.add(super.sb.panel() {
+                boxLayout(axis: BoxLayout.Y_AXIS)
+                label(text: DateUtils.longToDateString(date))
+                label(text: "草稿箱")
+                table() {
+                    tableModel(list: data) {
+                        propertyColumn(header: "工时对象", propertyName: "target")
+                        propertyColumn(header: "工时分类", propertyName: "type")
+                        propertyColumn(header: "项目", propertyName: "project")
+                        propertyColumn(header: "项目经理", propertyName: "manager")
+                        propertyColumn(header: "工时", propertyName: "hours")
+                    }
+                }
+                label(text: "已提交")
+                table() {
+                    sb.tableModel(list: data) {
+                        propertyColumn(header: "工时对象", propertyName: "target")
+                        propertyColumn(header: "工时分类", propertyName: "type")
+                        propertyColumn(header: "项目", propertyName: "project")
+                        propertyColumn(header: "项目经理", propertyName: "manager")
+                        propertyColumn(header: "工时", propertyName: "hours")
+                    }
+                }
+            }, 1)
+            // repaint panel
+            rootPanel.revalidate()
         })
         // 是否是周末
         if (day.dayOfWeek == 1 || day.dayOfWeek == 7) {

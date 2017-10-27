@@ -1,4 +1,5 @@
 *.class
+*.zip
 idea-time-plugin.iml
 .idea
 out
