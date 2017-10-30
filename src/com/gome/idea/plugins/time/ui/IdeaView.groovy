@@ -26,4 +26,11 @@ abstract class IdeaView {
     def reset(){
         // do nothing if child not override
     }
+
+    /**
+     * 保存表单信息
+     */
+    def apply(){
+        // do nothing if child not override
+    }
 }
