@@ -4,6 +4,7 @@ import groovyx.net.http.HTTPBuilder
 import groovyx.net.http.Method
 
 /**
+ * Http客户端请求
  * @author xiehai1
  * @date 2017/10/30 15:39
  * @Copyright ( c ) gome inc Gome Co.,LTD
