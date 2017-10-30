@@ -8,6 +8,8 @@ import com.gome.idea.plugins.time.vo.WeekVo
 import javax.swing.*
 import java.awt.*
 import java.awt.event.ActionEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 
 /**
  * Gome Time ToolWindow视图
@@ -25,6 +27,10 @@ class TimeToolWindowView extends IdeaView {
         this.init()
     }
 
+    /**
+     * ToolWindow初始化
+     * @return
+     */
     def init() {
         if (!this.month) {
             def peroid = getPeriod(this.month)
@@ -42,11 +48,23 @@ class TimeToolWindowView extends IdeaView {
                         tr {
                             td { label(text: "") }
                             td(align: "center") {
-                                button(text: "<<", toolTipText: "上一月", actionPerformed: { this.previousMonth() })
+                                button(
+                                    icon: sb.imageIcon(url: this.getClass().getResource("/icon/back.png")),
+                                    toolTipText: "上一月",
+                                    actionPerformed: {
+                                        this.previousMonth()
+                                    }
+                                )
                             }
                             td(align: "center", colspan: 2) { label(text: this.month) }
                             td(align: "center") {
-                                button(text: ">>", toolTipText: "下一月", actionPerformed: { this.nextMonth() })
+                                button(
+                                    icon: sb.imageIcon(url: this.getClass().getResource("/icon/forward.png")),
+                                    toolTipText: "下一月",
+                                    actionPerformed: {
+                                        this.nextMonth()
+                                    }
+                                )
                             }
                             td(align: "center") {
                                 label(text: "<html>出勤:<font color='green'>${monthVo.workHours}</font>h<html>")
@@ -79,6 +97,9 @@ class TimeToolWindowView extends IdeaView {
                 }
             }
         )
+
+        // 初始化明细面板
+        this.detailPanel(selectedDay)
     }
 
     /**
@@ -171,62 +192,8 @@ class TimeToolWindowView extends IdeaView {
         def button = super.sb.button(preferredSize: new Dimension(60, 40), actionCommand: day.datetime as String, actionPerformed: { ActionEvent event ->
             // 按钮命令
             def date = event.getActionCommand() as long
-            // TODO 明细数据填充
-            def rootPanel = super.scrollPane.getViewport().getView() as JPanel
-            rootPanel.remove(1)
-            def data = [
-                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 1],
-                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 2],
-                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 3],
-                [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 4]
-            ]
-            rootPanel.add(super.sb.panel() {
-                tableLayout {
-                    tr {
-                        td(align: "left") {
-                            label(text: DateUtils.longToDateString(date))
-                        }
-                    }
-                    // empty line
-                    tr { td { label(text: "") } }
-                    tr {
-                        td(align: "left") {
-                            panel(border: titledBorder(title: "工时草稿箱"), layout: borderLayout()) {
-                                def tab = table(background: super.scrollPane.getBackground()) {
-                                    tableModel(list: data) {
-                                        propertyColumn(header: "工时对象", propertyName: "target", editable: false)
-                                        propertyColumn(header: "工时分类", propertyName: "type", editable: false)
-                                        propertyColumn(header: "项目", propertyName: "project", editable: false)
-                                        propertyColumn(header: "项目经理", propertyName: "manager", editable: false)
-                                        propertyColumn(header: "工时", propertyName: "hours", editable: false)
-                                    }
-                                }
-                                widget(constraints: BorderLayout.NORTH, tab.tableHeader)
-                                widget(constraints: BorderLayout.CENTER, tab)
-                            }
-                        }
-                    }
-                    tr {
-                        td(align: "left") {
-                            panel(border: titledBorder(title: "已提交工时"), layout: borderLayout()) {
-                                def tab = table(background: super.scrollPane.getBackground(), enabled: false) {
-                                    tableModel(list: data) {
-                                        propertyColumn(header: "工时对象", propertyName: "target")
-                                        propertyColumn(header: "工时分类", propertyName: "type")
-                                        propertyColumn(header: "项目", propertyName: "project")
-                                        propertyColumn(header: "项目经理", propertyName: "manager")
-                                        propertyColumn(header: "工时", propertyName: "hours")
-                                    }
-                                }
-                                widget(constraints: BorderLayout.NORTH, tab.tableHeader)
-                                widget(constraints: BorderLayout.CENTER, tab)
-                            }
-                        }
-                    }
-                }
-            }, 1)
-            // repaint panel
-            rootPanel.revalidate()
+            // 明细面板
+            this.detailPanel(date)
         })
         // 是否是周末
         if (day.dayOfWeek == 1 || day.dayOfWeek == 7) {
@@ -240,9 +207,9 @@ class TimeToolWindowView extends IdeaView {
         def text = new StringBuilder("<html>")
         // 有审核通过的工时
         if (day.workHours) {
-            if(day.isCurrentMonth){
+            if (day.isCurrentMonth) {
                 text.append("<sup><font color='red'>${day.workHours}h</font></sup>")
-            }else{
+            } else {
                 text.append("<sup><font color='black'>${day.workHours}h</font></sup>")
             }
         }
@@ -258,6 +225,115 @@ class TimeToolWindowView extends IdeaView {
         return button
     }
 
+    /**
+     * 明细面板
+     * @param date 选中日期
+     * @return
+     */
+    private def detailPanel(long date) {
+        // 初始化时 默认打开当天的明细面板
+        if(!date){
+            Calendar calendar = Calendar.getInstance()
+            calendar.set(Calendar.HOUR_OF_DAY, 0)
+            calendar.set(Calendar.MINUTE, 0)
+            calendar.set(Calendar.SECOND, 0)
+            calendar.set(Calendar.MILLISECOND, 0)
+            date = calendar.getTime().getTime()
+        }
+        // 设置选择的日期
+        this.selectedDay = date
+        // TODO 明细数据填充
+        def rootPanel = super.scrollPane.getViewport().getView() as JPanel
+        rootPanel.remove(1)
+        def data = [
+            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 1],
+            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 2],
+            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 3],
+            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 4]
+        ]
+        rootPanel.add(super.sb.panel() {
+            tableLayout {
+                tr {
+                    td(align: "left") {
+                        label(text: DateUtils.longToDateString(date))
+                    }
+                }
+                tr {
+                    td(align: "left") {
+                        // 草稿箱面板
+                        panel(border: titledBorder(title: "工时草稿箱"), layout: borderLayout()) {
+                            def JTable tab = table(background: super.scrollPane.getBackground()) {
+                                tableModel(list: data) {
+                                    propertyColumn(header: "工时对象", propertyName: "target", editable: false)
+                                    propertyColumn(header: "工时分类", propertyName: "type", editable: false)
+                                    propertyColumn(header: "项目", propertyName: "project", editable: false)
+                                    propertyColumn(header: "项目经理", propertyName: "manager", editable: false)
+                                    propertyColumn(header: "工时", propertyName: "hours", editable: false)
+                                }
+                            }
+                            // 右键菜单
+                            def menu = sb.popupMenu {
+                                menuItem(
+                                    text: "删除草稿",
+                                    icon: imageIcon(url: this.getClass().getResource("/icon/delete.png")),
+                                    actionPerformed: {
+                                        // TODO 删除
+                                    }
+                                )
+                                separator()
+                                menuItem(
+                                    text: "提交审核",
+                                    icon: imageIcon(url: this.getClass().getResource("/icon/audit.png")),
+                                    actionPerformed: {
+                                        // TODO 提交审核
+                                    }
+                                )
+                            }
+                            tab.addMouseListener(new MouseAdapter(){
+                                @Override
+                                void mouseClicked(MouseEvent e) {
+                                    if(e.getButton() == MouseEvent.BUTTON3){
+                                        def index = tab.rowAtPoint(e.getPoint())
+                                        if(index == -1){
+                                            return
+                                        }
+                                        tab.setRowSelectionInterval(index, index)
+                                        menu.show(tab, e.getX(), e.getY())
+                                    }
+                                }
+                            })
+                            widget(constraints: BorderLayout.NORTH, tab.tableHeader)
+                            widget(constraints: BorderLayout.CENTER, tab)
+                        }
+                    }
+                }
+                tr {
+                    td(align: "left") {
+                        panel(border: titledBorder(title: "已提交工时"), layout: borderLayout()) {
+                            def tab = table(background: super.scrollPane.getBackground(), enabled: false) {
+                                tableModel(list: data) {
+                                    propertyColumn(header: "工时对象", propertyName: "target")
+                                    propertyColumn(header: "工时分类", propertyName: "type")
+                                    propertyColumn(header: "项目", propertyName: "project")
+                                    propertyColumn(header: "项目经理", propertyName: "manager")
+                                    propertyColumn(header: "工时", propertyName: "hours")
+                                }
+                            }
+                            widget(constraints: BorderLayout.NORTH, tab.tableHeader)
+                            widget(constraints: BorderLayout.CENTER, tab)
+                        }
+                    }
+                }
+            }
+        }, 1)
+        // repaint panel
+        rootPanel.revalidate()
+    }
+
+    /**
+     * 下一月面板
+     * @return
+     */
     private def nextMonth() {
         def peroid = getPeriod(this.month)
         def year = peroid[0] as int
@@ -271,6 +347,10 @@ class TimeToolWindowView extends IdeaView {
         this.init()
     }
 
+    /**
+     * 前一月面板
+     * @return
+     */
     private def previousMonth() {
         def peroid = getPeriod(this.month)
         def year = peroid[0] as int

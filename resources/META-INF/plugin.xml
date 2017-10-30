@@ -34,7 +34,7 @@
         <!--<applicationService serviceInterface="com.gome.idea.plugins.time.GJiraSettings"-->
                         <!--serviceImplementation="com.gome.idea.plugins.time.GJiraSettings"/>-->
         <!-- tool window配置 -->
-        <toolWindow id="Gome Time" anchor="bottom" icon="/icon/jira.png"
+        <toolWindow id="Gome Time" anchor="bottom" icon="/icon/time.png"
                     factoryClass="com.gome.idea.plugins.time.tw.TimeToolWindow"/>
     </extensions>
 
