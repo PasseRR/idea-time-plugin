@@ -30,7 +30,7 @@ class TimeSettingView extends IdeaView {
                         td {
                             this.urlField = textField(name: "url", text: this.getValue("url"), preferredSize: dimension)
                         }
-                        td(align: "right") {
+                        td {
                             button(text: "测试链接", actionPerformed: {
 
                             })
@@ -51,7 +51,7 @@ class TimeSettingView extends IdeaView {
                         td {
                             this.passField = passwordField(name: "password", text: this.getValue("password"), preferredSize: dimension)
                         }
-                        td(align: "right") {
+                        td {
                             button(text: "测试登录", actionPerformed: {
 
                             })

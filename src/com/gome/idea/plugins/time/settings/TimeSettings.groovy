@@ -36,10 +36,10 @@ class TimeSettings implements PersistentStateComponent<Element> {
     @Override
     Element getState() {
         Element element = new Element("TimeSettings")
-        element.setAttribute("url", this.url)
-        element.setAttribute("userName", this.userName)
-        element.setAttribute("password", this.password)
-        element.setAttribute("cookies", this.cookies)
+        element.setAttribute("url", this.url ? this.url : "")
+        element.setAttribute("userName", this.userName ? this.userName : "")
+        element.setAttribute("password", this.password ? this.password : "")
+        element.setAttribute("cookies", this.cookies ? this.cookies : "")
         element
     }
 
