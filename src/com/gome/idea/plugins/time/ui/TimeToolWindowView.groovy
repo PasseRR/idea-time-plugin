@@ -191,40 +191,35 @@ class TimeToolWindowView extends IdeaView {
                     tr { td { label(text: "") } }
                     tr {
                         td(align: "left") {
-                            label(text: "草稿箱")
-                        }
-                    }
-                    tr {
-                        td(align: "left") {
-                            table(enabled: false) {
-                                tableModel(list: data) {
-                                    propertyColumn(header: "工时对象", propertyName: "target")
-                                    propertyColumn(header: "工时分类", propertyName: "type")
-                                    propertyColumn(header: "项目", propertyName: "project")
-                                    propertyColumn(header: "项目经理", propertyName: "manager")
-                                    propertyColumn(header: "工时", propertyName: "hours")
+                            panel(border: titledBorder(title: "工时草稿箱"), layout: borderLayout()) {
+                                def tab = table(background: super.scrollPane.getBackground()) {
+                                    tableModel(list: data) {
+                                        propertyColumn(header: "工时对象", propertyName: "target", editable: false)
+                                        propertyColumn(header: "工时分类", propertyName: "type", editable: false)
+                                        propertyColumn(header: "项目", propertyName: "project", editable: false)
+                                        propertyColumn(header: "项目经理", propertyName: "manager", editable: false)
+                                        propertyColumn(header: "工时", propertyName: "hours", editable: false)
+                                    }
                                 }
+                                widget(constraints: BorderLayout.NORTH, tab.tableHeader)
+                                widget(constraints: BorderLayout.CENTER, tab)
                             }
-//                            widget(tab.tableHeader)
-                        }
-                    }
-                    // empty line
-                    tr { td { label(text: "") } }
-                    tr {
-                        td(align: "left") {
-                            label(text: "已提交")
                         }
                     }
                     tr {
                         td(align: "left") {
-                            table(enabled: false) {
-                                tableModel(list: data) {
-                                    propertyColumn(header: "工时对象", propertyName: "target")
-                                    propertyColumn(header: "工时分类", propertyName: "type")
-                                    propertyColumn(header: "项目", propertyName: "project")
-                                    propertyColumn(header: "项目经理", propertyName: "manager")
-                                    propertyColumn(header: "工时", propertyName: "hours")
+                            panel(border: titledBorder(title: "已提交工时"), layout: borderLayout()) {
+                                def tab = table(background: super.scrollPane.getBackground(), enabled: false) {
+                                    tableModel(list: data) {
+                                        propertyColumn(header: "工时对象", propertyName: "target")
+                                        propertyColumn(header: "工时分类", propertyName: "type")
+                                        propertyColumn(header: "项目", propertyName: "project")
+                                        propertyColumn(header: "项目经理", propertyName: "manager")
+                                        propertyColumn(header: "工时", propertyName: "hours")
+                                    }
                                 }
+                                widget(constraints: BorderLayout.NORTH, tab.tableHeader)
+                                widget(constraints: BorderLayout.CENTER, tab)
                             }
                         }
                     }
@@ -245,7 +240,11 @@ class TimeToolWindowView extends IdeaView {
         def text = new StringBuilder("<html>")
         // 有审核通过的工时
         if (day.workHours) {
-            text.append("<sup><font color='red'>${day.workHours}h</font></sup>")
+            if(day.isCurrentMonth){
+                text.append("<sup><font color='red'>${day.workHours}h</font></sup>")
+            }else{
+                text.append("<sup><font color='black'>${day.workHours}h</font></sup>")
+            }
         }
         // 是否是当月时间
         if (day.isCurrentMonth) {
