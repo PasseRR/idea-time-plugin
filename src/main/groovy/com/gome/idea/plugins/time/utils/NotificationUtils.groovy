@@ -23,10 +23,14 @@ class NotificationUtils {
      * @param flag 是否成功
      */
     def static notify(String event, boolean flag) {
+        notify(event, "操作${flag ? "成功" : "失败"}!", flag)
+    }
+
+    def static notify(String event, String msg, boolean flag){
         final Notification n = new Notification(
             "Time",
-            "${event}",
-            "操作${flag ? "成功" : "失败"}!",
+            event,
+            msg,
             flag ? NotificationType.INFORMATION : NotificationType.ERROR
         )
 
@@ -34,7 +38,7 @@ class NotificationUtils {
 
         // 异步让提示隐藏
         new Thread({
-            TimeUnit.SECONDS.sleep(2)
+            TimeUnit.SECONDS.sleep(1)
             n.expire()
         })
     }

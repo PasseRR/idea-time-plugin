@@ -9,9 +9,11 @@ import com.gome.idea.plugins.time.vo.WeekVo
 import com.intellij.openapi.project.Project
 
 import javax.swing.*
+import javax.swing.plaf.basic.BasicComboBoxRenderer
 import javax.swing.table.DefaultTableCellRenderer
 import java.awt.*
 import java.awt.event.ActionEvent
+import java.awt.event.ItemEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 
@@ -26,6 +28,16 @@ class TimeToolWindowView extends IdeaView {
     def String month
     def long selectedDay
     def Project project
+    // 工时对象
+    def JComboBox comboBox1
+    // 工时分类
+    def JComboBox comboBox2
+    // 项目
+    def JComboBox comboBox3
+    // 工时
+    def JTextField hourTextField
+    // 简述
+    def JTextField commentTextField
     // cache instance by project
     def private static INSTANCES = [:]
     def private static final WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -275,15 +287,142 @@ class TimeToolWindowView extends IdeaView {
         rootPanel.remove(1)
         def draft = TimeHttpClient.listDraft(date)
         def audit = TimeHttpClient.listAudit(date)
+
+        // 默认选中项目出勤
+        this.comboBox1 = sb.comboBox(items: TimeHttpClient.getAttendanceTypes(),
+            selectedIndex: 2, renderer: new BasicComboBoxRenderer() {
+            @Override
+            Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+                if (value) {
+                    super.setText(String.valueOf((value as Map).get("name")))
+                }
+
+                this
+            }
+        }, itemStateChanged: { ItemEvent e ->
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                def selectedItem = e.getItem() as Map
+                def id = selectedItem.get("id") as int
+                // 法定缺勤 disable项目选择
+                if (id == 13) {
+                    this.comboBox3.setEnabled(false)
+                } else {
+                    this.comboBox3.setEnabled(true)
+                }
+                // 设置工时分类联动
+                def items = TimeHttpClient.getByAttendanceTypes(id)
+                this.comboBox2.removeAllItems()
+                items.each { it ->
+                    this.comboBox2.addItem(it)
+                }
+            }
+        })
+
+        // 工时分类
+        // 默认选中开发工作
+        this.comboBox2 = sb.comboBox(items: TimeHttpClient.getByAttendanceTypes(this.getComboBox1SelectedId()),
+            selectedIndex: 16, renderer: new BasicComboBoxRenderer() {
+            @Override
+            Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+                if (value) {
+                    super.setText(String.valueOf((value as Map).get("name")))
+                }
+
+                this
+            }
+        })
+
+        // 项目选择
+        this.comboBox3 = sb.comboBox(items: TimeHttpClient.listProjects(), renderer: new BasicComboBoxRenderer() {
+            @Override
+            Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+                if (value) {
+                    super.setText(String.valueOf((value as Map).get("name")))
+                }
+
+                this
+            }
+        })
+
+        this.hourTextField = sb.textField(preferredSize: new Dimension(60, 25))
+        this.commentTextField = sb.textField(preferredSize: new Dimension(145, 25))
+
+        // 明细面板
         rootPanel.add(super.sb.panel() {
             tableLayout {
                 tr {
-                    td(align: "left") {
-                        label(text: DateUtils.longToDateString(date))
+                    td {
+                        panel(border: titledBorder(title: DateUtils.longToDateString(date))) {
+                            tableLayout {
+                                tr {
+                                    td {
+                                        label(text: "工时对象")
+                                    }
+                                    td {
+                                        // 默认选中项目出勤
+                                        widget(this.comboBox1)
+                                    }
+                                    td {
+                                        label(text: "工时分类")
+                                    }
+                                    td {
+                                        widget(this.comboBox2)
+                                    }
+                                    td {
+                                        label(text: "项目名称")
+                                    }
+                                    td {
+                                        widget(this.comboBox3)
+                                    }
+                                    td {
+                                        label(text: "工时")
+                                    }
+                                    td {
+                                        widget(this.hourTextField)
+                                    }
+                                    td {
+                                        label(text: "简述")
+                                    }
+                                    td {
+                                        widget(this.commentTextField)
+                                    }
+                                    td {
+                                        button(icon: sb.imageIcon(url: this.getClass().getResource("/icon/add.png")),
+                                            text: "添加", toolTipText: "添加", actionPerformed: {
+                                            String hour = this.hourTextField.getText()
+                                            if (!hour) {
+                                                NotificationUtils.notify("工时添加", "工时不能为空!", false)
+                                                return
+                                            }
+                                            try {
+                                                Double.valueOf(hour)
+                                            } catch (Exception e) {
+                                                NotificationUtils.notify("工时添加", "工时必须为数字!", false)
+                                                return
+                                            }
+                                            String comment = this.commentTextField.getText()
+                                            if (comment && comment.length() > 20) {
+                                                NotificationUtils.notify("工时添加", "简述长度不能超过20!", false)
+                                                return
+                                            }
+                                            NotificationUtils.notify(
+                                                "工时添加",
+                                                TimeHttpClient.saveHours(this.getSaveHourRequest(date, hour, comment)) as boolean
+                                            )
+                                            // 重新加载明细
+                                            this.detailPanel(this.selectedDay)
+                                        })
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 tr {
-                    td(align: "left") {
+                    td {
                         // 草稿箱面板
                         panel(border: titledBorder(title: "工时草稿箱"), layout: borderLayout()) {
                             def JTable tab = table(background: super.scrollPane.getBackground(),
@@ -360,7 +499,7 @@ class TimeToolWindowView extends IdeaView {
                     }
                 }
                 tr {
-                    td(align: "left") {
+                    td {
                         panel(border: titledBorder(title: "已提交工时"), layout: borderLayout()) {
                             def tab = table(background: super.scrollPane.getBackground(), enabled: false) {
                                 tableModel(list: audit) {
@@ -410,6 +549,28 @@ class TimeToolWindowView extends IdeaView {
         }, 1)
         // repaint panel
         rootPanel.revalidate()
+    }
+
+    def private getSaveHourRequest(long day, String hour, String content) {
+        def combo1 = this.comboBox1.getSelectedItem() as Map
+        def combo2 = this.comboBox2.getSelectedItem() as Map
+        def combo3 = this.comboBox3.getSelectedItem() as Map
+
+        [
+            attendanceTypeId: combo1.get("id") as int,
+            manhourTypeId   : combo2.get("id"),
+            hour            : hour,
+            content         : content ? content : "",
+            day             : day as String,
+            // 若可用则为正常出勤 否则为缺勤
+            projectId       : comboBox3.isEnabled() ? combo3.get("id") as int : ""
+        ]
+    }
+
+    def private getComboBox1SelectedId() {
+        def selectedItem = this.comboBox1.getSelectedItem() as Map
+
+        selectedItem.get("id") as int
     }
 
     /**
