@@ -5,13 +5,13 @@ import com.gome.idea.plugins.time.utils.DateUtils
 import com.gome.idea.plugins.time.vo.DayVo
 import com.gome.idea.plugins.time.vo.MonthVo
 import com.gome.idea.plugins.time.vo.WeekVo
+import com.intellij.openapi.project.Project
 
 import javax.swing.*
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-
 /**
  * Gome Time ToolWindow视图
  * @author xiehai1
@@ -22,11 +22,28 @@ class TimeToolWindowView extends IdeaView {
     // yyyy-MM
     def String month
     def long selectedDay
+    def Project project
+    // cache instance by project
+    def private static INSTANCES = [:]
     def private static final WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
 
-    TimeToolWindowView() {
+    private TimeToolWindowView(Project project) {
+        this.project = project
         this.init()
     }
+
+    def static getInstance(Project project){
+        if(!INSTANCES.get(project)){
+            synchronized (TimeToolWindowView.class){
+                if(!INSTANCES.get(project)){
+                    INSTANCES.put(project, new TimeToolWindowView(project))
+                }
+            }
+        }
+
+        INSTANCES.get(project) as TimeToolWindowView
+    }
+
 
     /**
      * ToolWindow初始化
@@ -135,7 +152,6 @@ class TimeToolWindowView extends IdeaView {
             calendar.add(Calendar.DAY_OF_MONTH, -diff)
         }
         MonthVo monthVo = new MonthVo(maxMonths, calendar.getTime())
-        println monthVo
         // 当月工时
         def result = TimeHttpClient.listMonth(monthVo.getFirstDay(), monthVo.getLastDay())
 

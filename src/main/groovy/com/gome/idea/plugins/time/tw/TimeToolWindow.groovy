@@ -46,7 +46,7 @@ class TimeToolWindow implements ToolWindowFactory {
     }
 
     def static repaint(Project project, ToolWindow toolWindow) {
-        JComponent component = new TimeToolWindowView().getScrollPane()
+        JComponent component = TimeToolWindowView.getInstance(project).getScrollPane()
         ContentManager contentManager = toolWindow.getContentManager()
         ContentFactory contentFactory = contentManager.getFactory()
         final String contentName = "- Times"
