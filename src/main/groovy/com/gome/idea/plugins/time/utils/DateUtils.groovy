@@ -15,7 +15,7 @@ class DateUtils {
      * @return
      */
     def private static autoAppendZero(int value) {
-        value > 9 ? value : value + "0"
+        value > 9 ? value : "0" + value
     }
 
     /**

@@ -2,6 +2,7 @@ package com.gome.idea.plugins.time.ui
 
 import com.gome.idea.plugins.time.http.TimeHttpClient
 import com.gome.idea.plugins.time.utils.DateUtils
+import com.gome.idea.plugins.time.utils.NotificationUtils
 import com.gome.idea.plugins.time.vo.DayVo
 import com.gome.idea.plugins.time.vo.MonthVo
 import com.gome.idea.plugins.time.vo.WeekVo
@@ -13,6 +14,7 @@ import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+
 /**
  * Gome Time ToolWindow视图
  * @author xiehai1
@@ -33,10 +35,10 @@ class TimeToolWindowView extends IdeaView {
         this.init()
     }
 
-    def static getInstance(Project project){
-        if(!INSTANCES.get(project)){
-            synchronized (TimeToolWindowView.class){
-                if(!INSTANCES.get(project)){
+    def static getInstance(Project project) {
+        if (!INSTANCES.get(project)) {
+            synchronized (TimeToolWindowView.class) {
+                if (!INSTANCES.get(project)) {
                     INSTANCES.put(project, new TimeToolWindowView(project))
                 }
             }
@@ -44,7 +46,6 @@ class TimeToolWindowView extends IdeaView {
 
         INSTANCES.get(project) as TimeToolWindowView
     }
-
 
     /**
      * ToolWindow初始化
@@ -285,10 +286,12 @@ class TimeToolWindowView extends IdeaView {
                     td(align: "left") {
                         // 草稿箱面板
                         panel(border: titledBorder(title: "工时草稿箱"), layout: borderLayout()) {
-                            def JTable tab = table(background: super.scrollPane.getBackground(), autoResizeMode: JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS) {
+                            def JTable tab = table(background: super.scrollPane.getBackground(),
+                                // 只能选中单行
+                                selectionMode: ListSelectionModel.SINGLE_SELECTION) {
                                 tableModel(list: draft) {
                                     propertyColumn(header: "ID", propertyName: "id", editable: false)
-                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer(){
+                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer() {
                                         @Override
                                         protected void setValue(Object value) {
                                             this.setText(DateUtils.longToDateString(value as long))
@@ -300,7 +303,7 @@ class TimeToolWindowView extends IdeaView {
                                     propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
                                     propertyColumn(header: "工时", propertyName: "hour", editable: false)
                                     propertyColumn(header: "简述", propertyName: "content", editable: false)
-                                    propertyColumn(header: "创建时间", propertyName: "createTime", editable: false, preferredWidth: 150, cellRenderer: new DefaultTableCellRenderer(){
+                                    propertyColumn(header: "创建时间", propertyName: "createTime", editable: false, preferredWidth: 150, cellRenderer: new DefaultTableCellRenderer() {
                                         @Override
                                         protected void setValue(Object value) {
                                             this.setText(DateUtils.longToDateTimeString(value as long))
@@ -314,7 +317,13 @@ class TimeToolWindowView extends IdeaView {
                                     text: "删除草稿",
                                     icon: imageIcon(url: this.getClass().getResource("/icon/delete.png")),
                                     actionPerformed: {
-                                        // TODO 删除
+                                        int index = tab.getSelectedRow()
+                                        if (-1 != index) {
+                                            def id = tab.getValueAt(index, 0) as int
+                                            NotificationUtils.notify("删除草稿", TimeHttpClient.deleteDraft(id) as boolean)
+                                            // 重新加载明细
+                                            this.detailPanel(this.selectedDay)
+                                        }
                                     }
                                 )
                                 separator()
@@ -322,7 +331,13 @@ class TimeToolWindowView extends IdeaView {
                                     text: "提交审核",
                                     icon: imageIcon(url: this.getClass().getResource("/icon/audit.png")),
                                     actionPerformed: {
-                                        // TODO 提交审核
+                                        int index = tab.getSelectedRow()
+                                        if (-1 != index) {
+                                            def id = tab.getValueAt(index, 0) as int
+                                            NotificationUtils.notify("提交审核", TimeHttpClient.submitDraft(id) as boolean)
+                                            // 重新加载明细
+                                            this.detailPanel(this.selectedDay)
+                                        }
                                     }
                                 )
                             }
@@ -347,10 +362,10 @@ class TimeToolWindowView extends IdeaView {
                 tr {
                     td(align: "left") {
                         panel(border: titledBorder(title: "已提交工时"), layout: borderLayout()) {
-                            def tab = table(background: super.scrollPane.getBackground(), autoResizeMode: JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS, enabled: false) {
+                            def tab = table(background: super.scrollPane.getBackground(), enabled: false) {
                                 tableModel(list: audit) {
                                     propertyColumn(header: "ID", propertyName: "id", editable: false)
-                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer(){
+                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer() {
                                         @Override
                                         protected void setValue(Object value) {
                                             this.setText(DateUtils.longToDateString(value as long))
@@ -362,20 +377,20 @@ class TimeToolWindowView extends IdeaView {
                                     propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
                                     propertyColumn(header: "工时", propertyName: "hour", editable: false)
                                     propertyColumn(header: "简述", propertyName: "content", editable: false)
-                                    propertyColumn(header: "审核状态", propertyName: "auditType", editable: false, cellRenderer: new DefaultTableCellRenderer(){
+                                    propertyColumn(header: "审核状态", propertyName: "auditType", editable: false, cellRenderer: new DefaultTableCellRenderer() {
                                         @Override
                                         protected void setValue(Object value) {
                                             int auditStatus = value as int
-                                            switch (auditStatus){
-                                                case 2 :
+                                            switch (auditStatus) {
+                                                case 2:
                                                     this.setText("审核中")
                                                     this.setForeground(Color.YELLOW)
                                                     break
-                                                case 3 :
+                                                case 3:
                                                     this.setText("审核通过")
                                                     this.setForeground(Color.GREEN)
                                                     break
-                                                case 4 :
+                                                case 4:
                                                     this.setText("审核未通过")
                                                     this.setForeground(Color.RED)
                                                     break

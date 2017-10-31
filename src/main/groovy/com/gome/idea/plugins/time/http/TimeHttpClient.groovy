@@ -101,7 +101,7 @@ class TimeHttpClient {
      * @return
      */
     def private static listMonth0(String startDay, String endDay, boolean isRetried) {
-        def respJson
+        def respJson = [:]
         def http = new HTTPBuilder(SETTINGS.getUrl())
         http.request(Method.POST, ContentType.JSON) { req ->
             uri.path = "/manhour/manhour/list/month"
@@ -132,7 +132,7 @@ class TimeHttpClient {
     }
 
     def private static listDraft0(long day, boolean isRetried){
-        def respJson
+        def respJson = [:]
         def http = new HTTPBuilder(SETTINGS.getUrl())
         http.request(Method.GET, ContentType.JSON) { req ->
             uri.path = "/manhour/manhour/list/day/${day}"
@@ -157,7 +157,7 @@ class TimeHttpClient {
     }
 
     def private static listAudit0(long day, boolean isRetried){
-        def respJson
+        def respJson = [:]
         def http = new HTTPBuilder(SETTINGS.getUrl())
         http.request(Method.GET, ContentType.JSON) { req ->
             uri.path = "/manhour/manhour/list/audit/day/${day}"
@@ -175,5 +175,65 @@ class TimeHttpClient {
         }
 
         respJson['result']
+    }
+
+    /**
+     * 草稿删除
+     * @param id 工时记录id
+     */
+    def static deleteDraft(int id){
+        return deleteDraft0(id, false)
+    }
+
+    def private static deleteDraft0(int id, boolean isRetried){
+        def respJson = [:]
+        def http = new HTTPBuilder(SETTINGS.getUrl())
+        http.request(Method.DELETE, ContentType.JSON) { req ->
+            uri.path = "/manhour/manhour/delete/${id}"
+            headers.'Cookie' = SETTINGS.getCookies()
+            response.success = { resp, json ->
+                respJson = json
+            }
+        }
+
+        if (!isRetried && !respJson['success']) {
+            // 如果session超时 再次登录
+            retryCookie()
+            // 重试一次
+            return deleteDraft0(id, true)
+        }
+
+        respJson['success']
+    }
+
+    /**
+     * 草稿提交审核
+     * @param id
+     * @return
+     */
+    def static submitDraft(int id){
+        return submitDraft0(id, false)
+    }
+
+    def private static submitDraft0(int id, boolean isRetried){
+        def respJson = [:]
+        def http = new HTTPBuilder(SETTINGS.getUrl())
+        http.request(Method.PUT, ContentType.JSON) { req ->
+            uri.path = "/manhour/manhour/audit/update"
+            body = [ids: id as String, auditType: 2]
+            headers.'Cookie' = SETTINGS.getCookies()
+            response.success = { resp, json ->
+                respJson = json
+            }
+        }
+
+        if (!isRetried && !respJson['success']) {
+            // 如果session超时 再次登录
+            retryCookie()
+            // 重试一次
+            return submitDraft0(id, true)
+        }
+
+        respJson['success']
     }
 }
