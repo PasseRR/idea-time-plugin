@@ -5,8 +5,17 @@ package com.gome.idea.plugins.time.utils
  * @Copyright ( c ) gome inc Gome Co.,LTD
  */
 class DateUtils {
-    private DateUtils(){
+    private DateUtils() {
 
+    }
+
+    /**
+     * 小于10的数字自动补零
+     * @param value
+     * @return
+     */
+    def private static autoAppendZero(int value) {
+        value > 9 ? value : value + "0"
     }
 
     /**
@@ -14,17 +23,34 @@ class DateUtils {
      * @param datetime
      * @return yyyy-MM-dd
      */
-    def static longToDateString(long datetime){
+    def static longToDateString(long datetime) {
         Calendar calendar = Calendar.getInstance()
         calendar.setTime(new Date(datetime))
         def sb = new StringBuilder()
         sb.append(calendar.get(Calendar.YEAR))
         sb.append("-")
-        def month = calendar.get(Calendar.MONTH) + 1
-        sb.append(month > 9 ? month : "0" + month)
-        def day = calendar.get(Calendar.DAY_OF_MONTH)
+        sb.append(autoAppendZero(calendar.get(Calendar.MONTH) + 1))
         sb.append("-")
-        sb.append(day > 9 ? day : "0" + day)
+        sb.append(autoAppendZero(calendar.get(Calendar.DAY_OF_MONTH)))
+
+        sb.toString()
+    }
+
+    def static longToDateTimeString(long datetime) {
+        Calendar calendar = Calendar.getInstance()
+        calendar.setTime(new Date(datetime))
+        def sb = new StringBuilder()
+        sb.append(calendar.get(Calendar.YEAR))
+        sb.append("-")
+        sb.append(autoAppendZero(calendar.get(Calendar.MONTH) + 1))
+        sb.append("-")
+        sb.append(calendar.get(Calendar.DAY_OF_MONTH))
+        sb.append(" ")
+        sb.append(autoAppendZero(calendar.get(Calendar.HOUR_OF_DAY)))
+        sb.append(":")
+        sb.append(autoAppendZero(calendar.get(Calendar.MINUTE)))
+        sb.append(":")
+        sb.append(autoAppendZero(calendar.get(Calendar.SECOND)))
 
         sb.toString()
     }

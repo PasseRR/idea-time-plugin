@@ -8,6 +8,7 @@ import com.gome.idea.plugins.time.vo.WeekVo
 import com.intellij.openapi.project.Project
 
 import javax.swing.*
+import javax.swing.table.DefaultTableCellRenderer
 import java.awt.*
 import java.awt.event.ActionEvent
 import java.awt.event.MouseAdapter
@@ -59,9 +60,9 @@ class TimeToolWindowView extends IdeaView {
         // 绘制日历
         super.scrollPane.setViewportView(
             // 网格布局
-            super.sb.panel(layout: new GridLayout(1, 2)) {
+            super.sb.panel(layout: new FlowLayout(FlowLayout.LEFT, 20, 20)) {
                 // 日历
-                panel() {
+                panel(name: "calendar") {
                     tableLayout {
                         tr {
                             td { label(text: "") }
@@ -269,15 +270,10 @@ class TimeToolWindowView extends IdeaView {
         }
         // 设置选择的日期
         this.selectedDay = date
-        // TODO 明细数据填充
         def rootPanel = super.scrollPane.getViewport().getView() as JPanel
         rootPanel.remove(1)
-        def data = [
-            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 1],
-            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 2],
-            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 3],
-            [target: "项目出勤", type: "开发工作", project: "GSR", manager: "陈亚妮", hours: 4]
-        ]
+        def draft = TimeHttpClient.listDraft(date)
+        def audit = TimeHttpClient.listAudit(date)
         rootPanel.add(super.sb.panel() {
             tableLayout {
                 tr {
@@ -289,13 +285,27 @@ class TimeToolWindowView extends IdeaView {
                     td(align: "left") {
                         // 草稿箱面板
                         panel(border: titledBorder(title: "工时草稿箱"), layout: borderLayout()) {
-                            def JTable tab = table(background: super.scrollPane.getBackground()) {
-                                tableModel(list: data) {
-                                    propertyColumn(header: "工时对象", propertyName: "target", editable: false)
-                                    propertyColumn(header: "工时分类", propertyName: "type", editable: false)
-                                    propertyColumn(header: "项目", propertyName: "project", editable: false)
-                                    propertyColumn(header: "项目经理", propertyName: "manager", editable: false)
-                                    propertyColumn(header: "工时", propertyName: "hours", editable: false)
+                            def JTable tab = table(background: super.scrollPane.getBackground(), autoResizeMode: JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS) {
+                                tableModel(list: draft) {
+                                    propertyColumn(header: "ID", propertyName: "id", editable: false)
+                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer(){
+                                        @Override
+                                        protected void setValue(Object value) {
+                                            this.setText(DateUtils.longToDateString(value as long))
+                                        }
+                                    })
+                                    propertyColumn(header: "工时对象", propertyName: "attendanceTypeName", editable: false)
+                                    propertyColumn(header: "工时分类", propertyName: "manhourTypeName", editable: false)
+                                    propertyColumn(header: "项目", propertyName: "projectName", editable: false, preferredWidth: 90)
+                                    propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
+                                    propertyColumn(header: "工时", propertyName: "hour", editable: false)
+                                    propertyColumn(header: "简述", propertyName: "content", editable: false)
+                                    propertyColumn(header: "创建时间", propertyName: "createTime", editable: false, preferredWidth: 150, cellRenderer: new DefaultTableCellRenderer(){
+                                        @Override
+                                        protected void setValue(Object value) {
+                                            this.setText(DateUtils.longToDateTimeString(value as long))
+                                        }
+                                    })
                                 }
                             }
                             // 右键菜单
@@ -337,13 +347,43 @@ class TimeToolWindowView extends IdeaView {
                 tr {
                     td(align: "left") {
                         panel(border: titledBorder(title: "已提交工时"), layout: borderLayout()) {
-                            def tab = table(background: super.scrollPane.getBackground(), enabled: false) {
-                                tableModel(list: data) {
-                                    propertyColumn(header: "工时对象", propertyName: "target")
-                                    propertyColumn(header: "工时分类", propertyName: "type")
-                                    propertyColumn(header: "项目", propertyName: "project")
-                                    propertyColumn(header: "项目经理", propertyName: "manager")
-                                    propertyColumn(header: "工时", propertyName: "hours")
+                            def tab = table(background: super.scrollPane.getBackground(), autoResizeMode: JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS, enabled: false) {
+                                tableModel(list: audit) {
+                                    propertyColumn(header: "ID", propertyName: "id", editable: false)
+                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer(){
+                                        @Override
+                                        protected void setValue(Object value) {
+                                            this.setText(DateUtils.longToDateString(value as long))
+                                        }
+                                    })
+                                    propertyColumn(header: "工时对象", propertyName: "attendanceTypeName", editable: false)
+                                    propertyColumn(header: "工时分类", propertyName: "manhourTypeName", editable: false)
+                                    propertyColumn(header: "项目", propertyName: "projectName", editable: false, preferredWidth: 90)
+                                    propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
+                                    propertyColumn(header: "工时", propertyName: "hour", editable: false)
+                                    propertyColumn(header: "简述", propertyName: "content", editable: false)
+                                    propertyColumn(header: "审核状态", propertyName: "auditType", editable: false, cellRenderer: new DefaultTableCellRenderer(){
+                                        @Override
+                                        protected void setValue(Object value) {
+                                            int auditStatus = value as int
+                                            switch (auditStatus){
+                                                case 2 :
+                                                    this.setText("审核中")
+                                                    this.setForeground(Color.YELLOW)
+                                                    break
+                                                case 3 :
+                                                    this.setText("审核通过")
+                                                    this.setForeground(Color.GREEN)
+                                                    break
+                                                case 4 :
+                                                    this.setText("审核未通过")
+                                                    this.setForeground(Color.RED)
+                                                    break
+                                                default: break
+                                            }
+                                        }
+                                    })
+                                    propertyColumn(header: "审核意见", propertyName: "auditComment", editable: false)
                                 }
                             }
                             widget(constraints: BorderLayout.NORTH, tab.tableHeader)

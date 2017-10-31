@@ -77,6 +77,14 @@ class TimeHttpClient {
     }
 
     /**
+     * 重新登录并保存cookie 根据已经设置的地址、用户名、密码
+     * @return
+     */
+    def private static retryCookie(){
+        return login(SETTINGS.getUrl(), SETTINGS.getUserName(), SETTINGS.getPassword())
+    }
+
+    /**
      * 获得当月工时数据
      * @param startDay 当月第一天
      * @param endDay 当月最后一天
@@ -106,9 +114,64 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            login(SETTINGS.getUrl(), SETTINGS.getUserName(), SETTINGS.getPassword())
+            retryCookie()
             // 重试一次
             return listMonth0(startDay, endDay, true)
+        }
+
+        respJson['result']
+    }
+
+    /**
+     * 草稿查询
+     * @param day 指定日期
+     * @return
+     */
+    def static listDraft(long day){
+        return listDraft0(day, false)
+    }
+
+    def private static listDraft0(long day, boolean isRetried){
+        def respJson
+        def http = new HTTPBuilder(SETTINGS.getUrl())
+        http.request(Method.GET, ContentType.JSON) { req ->
+            uri.path = "/manhour/manhour/list/day/${day}"
+            headers.'Cookie' = SETTINGS.getCookies()
+            response.success = { resp, json ->
+                respJson = json
+            }
+        }
+
+        if (!isRetried && !respJson['success']) {
+            // 如果session超时 再次登录
+            retryCookie()
+            // 重试一次
+            return listDraft0(day, true)
+        }
+
+        respJson['result']
+    }
+
+    def static listAudit(long day){
+        return listAudit0(day, false)
+    }
+
+    def private static listAudit0(long day, boolean isRetried){
+        def respJson
+        def http = new HTTPBuilder(SETTINGS.getUrl())
+        http.request(Method.GET, ContentType.JSON) { req ->
+            uri.path = "/manhour/manhour/list/audit/day/${day}"
+            headers.'Cookie' = SETTINGS.getCookies()
+            response.success = { resp, json ->
+                respJson = json
+            }
+        }
+
+        if (!isRetried && !respJson['success']) {
+            // 如果session超时 再次登录
+            retryCookie()
+            // 重试一次
+            return listAudit0(day, true)
         }
 
         respJson['result']
