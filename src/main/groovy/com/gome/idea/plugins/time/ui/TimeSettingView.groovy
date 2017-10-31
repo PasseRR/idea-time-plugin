@@ -1,6 +1,8 @@
 package com.gome.idea.plugins.time.ui
 
+import com.gome.idea.plugins.time.http.TimeHttpClient
 import com.gome.idea.plugins.time.settings.TimeSettings
+import com.intellij.openapi.ui.Messages
 
 import javax.swing.*
 import java.awt.*
@@ -28,11 +30,13 @@ class TimeSettingView extends IdeaView {
                             label(text: "服务器")
                         }
                         td {
-                            this.urlField = textField(name: "url", text: this.getValue("url"), preferredSize: dimension)
+                            this.urlField = textField(name: "url", text: settings.getUrl(), preferredSize: dimension)
                         }
                         td {
                             button(text: "测试链接", actionPerformed: {
-
+                                TimeHttpClient.enableConnect(this.urlField.getText()) ?
+                                    Messages.showMessageDialog("连接成功!", "Time", Messages.getInformationIcon()) :
+                                    Messages.showMessageDialog("连接失败!", "Time", Messages.getErrorIcon())
                             })
                         }
                     }
@@ -41,7 +45,7 @@ class TimeSettingView extends IdeaView {
                             label(text: "用户名")
                         }
                         td {
-                            this.userNameField = textField(name: "userName", text: this.getValue("userName"), preferredSize: dimension)
+                            this.userNameField = textField(name: "userName", text: settings.getUserName(), preferredSize: dimension)
                         }
                     }
                     tr {
@@ -49,11 +53,16 @@ class TimeSettingView extends IdeaView {
                             label(text: "密码")
                         }
                         td {
-                            this.passField = passwordField(name: "password", text: this.getValue("password"), preferredSize: dimension)
+                            this.passField = passwordField(name: "password", text: settings.getPassword(), preferredSize: dimension)
                         }
                         td {
                             button(text: "测试登录", actionPerformed: {
-
+                                TimeHttpClient.login(
+                                    this.urlField.getText(),
+                                    this.userNameField.getText(),
+                                    String.valueOf(this.passField.getPassword())
+                                ) ? Messages.showMessageDialog("登录成功!", "Time", Messages.getInformationIcon()) :
+                                    Messages.showMessageDialog("登录失败!", "Time", Messages.getErrorIcon())
                             })
                         }
                     }
@@ -64,16 +73,16 @@ class TimeSettingView extends IdeaView {
 
     @Override
     def isModified() {
-        return this.urlField.getText() != this.getValue("url") ||
-            this.userNameField.getText() != this.getValue("userName") ||
-            String.valueOf(this.passField.getPassword()) != this.getValue("password")
+        return this.urlField.getText() != settings.getUrl() ||
+            this.userNameField.getText() != settings.getUserName() ||
+            String.valueOf(this.passField.getPassword()) != settings.getPassword()
     }
 
     @Override
     def reset() {
-        this.urlField.setText(this.getValue("url"))
-        this.userNameField.setText(this.getValue("userName"))
-        this.passField.setText(this.getValue("password"))
+        this.urlField.setText(settings.getUrl())
+        this.userNameField.setText(settings.getUserName())
+        this.passField.setText(settings.getPassword())
     }
 
     @Override
@@ -81,10 +90,5 @@ class TimeSettingView extends IdeaView {
         settings.setUrl(this.urlField.getText())
         settings.setUserName(this.userNameField.getText())
         settings.setPassword(String.valueOf(this.passField.getPassword()))
-    }
-
-    private def getValue(String key) {
-        def value = settings.getProperty(key)
-        value ? value as String : ""
     }
 }
