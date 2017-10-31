@@ -36,7 +36,7 @@ class TimeToolWindow implements ToolWindowFactory {
                         // plugin.xml ToolWindow id
                         ToolWindow tw = ToolWindowManagerEx.getInstance(it).getToolWindow(TOOL_WINDOW_NAME)
                         // 激活ToolWindow做刷新操作
-                        if (tw != null && tw.isVisible()) {
+                        if (tw != null && tw.isActive()) {
                             repaint(it, tw)
                         }
                     }

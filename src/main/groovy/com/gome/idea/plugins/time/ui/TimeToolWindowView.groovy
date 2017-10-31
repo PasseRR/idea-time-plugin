@@ -1,5 +1,6 @@
 package com.gome.idea.plugins.time.ui
 
+import com.gome.idea.plugins.time.http.TimeHttpClient
 import com.gome.idea.plugins.time.utils.DateUtils
 import com.gome.idea.plugins.time.vo.DayVo
 import com.gome.idea.plugins.time.vo.MonthVo
@@ -67,10 +68,10 @@ class TimeToolWindowView extends IdeaView {
                                 )
                             }
                             td(align: "center") {
-                                label(text: "<html>出勤:<font color='green'>${monthVo.workHours}</font>h<html>")
+                                label(text: "<html>出勤:<font color='green'>${monthVo.workHours as int}</font>h<html>")
                             }
                             td(align: "center") {
-                                label(text: "<html>缺勤:<font color='red'>${monthVo.restHours}</font>h<html>")
+                                label(text: "<html>缺勤:<font color='red'>${monthVo.restHours as int}</font>h<html>")
                             }
                         }
                         tr {
@@ -108,13 +109,14 @@ class TimeToolWindowView extends IdeaView {
      * @return {@link MonthVo}
      */
     private def getMonthVo(String month) {
-        MonthVo monthVo = new MonthVo()
         // 默认星期天为每周第一天
         def calendar = Calendar.getInstance()
         def peroid = getPeriod(month)
+        def selectedYear = peroid[0] as int
+        def selectedMonth = (peroid[1] as int) - 1
         // 设置年月
-        calendar.set(Calendar.YEAR, peroid[0] as int)
-        calendar.set(Calendar.MONTH, (peroid[1] as int) - 1)
+        calendar.set(Calendar.YEAR, selectedYear)
+        calendar.set(Calendar.MONTH, selectedMonth)
         // 设置日期为当月第一天
         // 设置时间为00:00:00,000
         calendar.set(Calendar.DAY_OF_MONTH, 1)
@@ -123,25 +125,25 @@ class TimeToolWindowView extends IdeaView {
         calendar.set(Calendar.SECOND, 0)
         calendar.set(Calendar.MILLISECOND, 0)
         def maxMonths = calendar.getActualMaximum(Calendar.WEEK_OF_MONTH)
+        def dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
+        // 若1号不是星期天 即不是每周第一天开始
+        // 向前补齐该周
+        if (dayOfWeek != 1) {
+            // 向前补齐的天数
+            // 星期天为1 星期二为3 则补齐2天
+            def diff = dayOfWeek - 1
+            calendar.add(Calendar.DAY_OF_MONTH, -diff)
+        }
+        MonthVo monthVo = new MonthVo(maxMonths, calendar.getTime())
+        println monthVo
+        // 当月工时
+        def result = TimeHttpClient.listMonth(monthVo.getFirstDay(), monthVo.getLastDay())
 
         maxMonths.times { index ->
             def WeekVo weekVo = new WeekVo()
-            // 获得当月第一周第一天
-            if (index == 0) {
-                def dayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
-                // 若1号不是星期天 即不是每周第一天开始
-                // 向前补齐该周
-                if (dayOfWeek != 1) {
-                    // 向前补齐的天数
-                    // 星期天为1 星期二为3 则补齐2天
-                    def diff = dayOfWeek - 1
-                    calendar.add(Calendar.DAY_OF_MONTH, -diff)
-                }
-                monthVo.setFirstDay(getDayVo(calendar))
-            }
 
             7.times { it ->
-                def day = getDayVo(calendar)
+                def day = getDayVo(calendar, result)
                 weekVo.days[it] = day
                 if (day.isCurrentMonth) {
                     if (day.workHours) {
@@ -152,11 +154,6 @@ class TimeToolWindowView extends IdeaView {
                     }
                 }
                 calendar.add(Calendar.DAY_OF_MONTH, 1)
-            }
-
-            // 获得当月第一周最后一天
-            if (index == maxMonths - 1) {
-                monthVo.setLastDay(getDayVo(calendar))
             }
 
             monthVo.weeks[index] = weekVo
@@ -170,16 +167,22 @@ class TimeToolWindowView extends IdeaView {
      * @param calendar 日期
      * @return {@link DayVo}
      */
-    private def getDayVo(Calendar calendar) {
-        new DayVo(
+    private def getDayVo(Calendar calendar, def result) {
+        def dayVo = new DayVo(
             date: calendar.get(Calendar.DAY_OF_MONTH),
             datetime: calendar.getTime().getTime(),
             dayOfWeek: calendar.get(Calendar.DAY_OF_WEEK),
-            isCurrentMonth: isCurrentMonth(calendar, this.month),
-            // TODO 填充工时
-            workHours: calendar.get(Calendar.DAY_OF_MONTH) % 7,
-            restHours: 0
+            isCurrentMonth: isCurrentMonth(calendar, this.month)
         )
+
+        result.find { it ->
+            if (it['day'] == calendar.getTime().getTime()) {
+                dayVo.setWorkHours(it['workHour'])
+                dayVo.setRestHours(it['restHour'])
+            }
+        }
+
+        dayVo
     }
 
     /**
@@ -208,9 +211,9 @@ class TimeToolWindowView extends IdeaView {
         // 有审核通过的工时
         if (day.workHours) {
             if (day.isCurrentMonth) {
-                text.append("<sup><font color='red'>${day.workHours}h</font></sup>")
+                text.append("<sup><font color='green'>${day.workHours as int}h</font></sup>")
             } else {
-                text.append("<sup><font color='black'>${day.workHours}h</font></sup>")
+                text.append("<sup><font color='black'>${day.workHours as int}h</font></sup>")
             }
         }
         // 是否是当月时间
@@ -218,6 +221,14 @@ class TimeToolWindowView extends IdeaView {
             text.append("${day.date}")
         } else {
             text.append("<font color='gray'>${day.date}</font>")
+        }
+        // 是否有休假
+        if (day.restHours) {
+            if (day.isCurrentMonth) {
+                text.append("<sup><font color='red'>${day.restHours as int}h</font></sup>")
+            } else {
+                text.append("<sup><font color='gray'>${day.restHours as int}h</font></sup>")
+            }
         }
         text.append("</html>")
         // 设置按钮文字
@@ -232,7 +243,7 @@ class TimeToolWindowView extends IdeaView {
      */
     private def detailPanel(long date) {
         // 初始化时 默认打开当天的明细面板
-        if(!date){
+        if (!date) {
             Calendar calendar = Calendar.getInstance()
             calendar.set(Calendar.HOUR_OF_DAY, 0)
             calendar.set(Calendar.MINUTE, 0)
@@ -289,12 +300,12 @@ class TimeToolWindowView extends IdeaView {
                                     }
                                 )
                             }
-                            tab.addMouseListener(new MouseAdapter(){
+                            tab.addMouseListener(new MouseAdapter() {
                                 @Override
                                 void mouseClicked(MouseEvent e) {
-                                    if(e.getButton() == MouseEvent.BUTTON3){
+                                    if (e.getButton() == MouseEvent.BUTTON3) {
                                         def index = tab.rowAtPoint(e.getPoint())
-                                        if(index == -1){
+                                        if (index == -1) {
                                             return
                                         }
                                         tab.setRowSelectionInterval(index, index)

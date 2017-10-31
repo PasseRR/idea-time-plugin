@@ -76,5 +76,41 @@ class TimeHttpClient {
         flag
     }
 
+    /**
+     * 获得当月工时数据
+     * @param startDay 当月第一天
+     * @param endDay 当月最后一天
+     * @return
+     */
+    def static listMonth(String startDay, String endDay) {
+        return listMonth0(startDay, endDay, false)
+    }
+    /**
+     * {@link TimeHttpClient#listMonth(String startDay, String endDay)}
+     * @param startDay
+     * @param endDay
+     * @param isRetried 是否已经重试
+     * @return
+     */
+    def private static listMonth0(String startDay, String endDay, boolean isRetried) {
+        def respJson
+        def http = new HTTPBuilder(SETTINGS.getUrl())
+        http.request(Method.POST, ContentType.JSON) { req ->
+            uri.path = "/manhour/manhour/list/month"
+            headers.'Cookie' = SETTINGS.getCookies()
+            body = [startDay: startDay, endDay: endDay]
+            response.success = { resp, json ->
+                respJson = json
+            }
+        }
 
+        if (!isRetried && !respJson['success']) {
+            // 如果session超时 再次登录
+            login(SETTINGS.getUrl(), SETTINGS.getUserName(), SETTINGS.getPassword())
+            // 重试一次
+            return listMonth0(startDay, endDay, true)
+        }
+
+        respJson['result']
+    }
 }
