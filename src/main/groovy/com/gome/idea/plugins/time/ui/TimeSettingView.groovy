@@ -30,7 +30,8 @@ class TimeSettingView extends IdeaView {
                             label(text: "服务器")
                         }
                         td {
-                            this.urlField = textField(name: "url", text: settings.getUrl(), preferredSize: dimension, toolTipText: "工时系统服务器地址, 以http开始")
+                            def url = settings.getUrl()
+                            this.urlField = textField(name: "url", text: url ? url : "http://10.112.70.1", preferredSize: dimension, toolTipText: "工时系统服务器地址, 以http开始")
                         }
                         td {
                             button(text: "测试链接", actionPerformed: {
