@@ -1,4 +1,3 @@
-<?xml version="1.0" encoding="iso-8859-1" ?>
 <idea-plugin version="2" url="https://github.com/PasseRR/idea-time-plugin">
     <id>com.gome.plugin.time</id>
     <name>Gome Time</name>
@@ -30,11 +29,11 @@
     <idea-version since-build="141.0"/>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- settingsÅäÖÃ -->
+        <!-- settingsé…ç½®-->
         <applicationConfigurable instance="com.gome.idea.plugins.time.settings.TimeConfigurable"/>
         <applicationService serviceInterface="com.gome.idea.plugins.time.settings.TimeSettings"
                             serviceImplementation="com.gome.idea.plugins.time.settings.TimeSettings"/>
-        <!-- tool windowÅäÖÃ -->
+        <!-- tool windowé…ç½®-->
         <toolWindow id="Gome Time" anchor="bottom" icon="/icon/time.png"
                     factoryClass="com.gome.idea.plugins.time.tw.TimeToolWindow"/>
     </extensions>
