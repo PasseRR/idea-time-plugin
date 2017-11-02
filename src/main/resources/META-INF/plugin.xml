@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="iso-8859-1" ?>
 <idea-plugin version="2" url="https://github.com/PasseRR/idea-time-plugin">
     <id>com.gome.plugin.time</id>
     <name>Gome Time</name>
@@ -5,12 +6,12 @@
         PasseRR
     </vendor>
 
-    <version>1.0</version>
+    <version>v1.0</version>
 
     <description>
         <![CDATA[
           <p>
-            use for Gome Time
+            use for <a href="http://10.112.70.1/manager/index.html#/login?_k=je7403">Gome Time</a>, welcome to report bug.
           </p>
         ]]>
     </description>
@@ -20,7 +21,7 @@
           <p>
             v1.0
             <ul>
-              <li>base version</li>
+              <li>basic version</li>
             </ul>
           </p>
         ]]>
@@ -29,11 +30,11 @@
     <idea-version since-build="141.0"/>
 
     <extensions defaultExtensionNs="com.intellij">
-        <!-- settingsé…ç½® -->
+        <!-- settingsÅäÖÃ -->
         <applicationConfigurable instance="com.gome.idea.plugins.time.settings.TimeConfigurable"/>
         <applicationService serviceInterface="com.gome.idea.plugins.time.settings.TimeSettings"
                             serviceImplementation="com.gome.idea.plugins.time.settings.TimeSettings"/>
-        <!-- tool windowé…ç½® -->
+        <!-- tool windowÅäÖÃ -->
         <toolWindow id="Gome Time" anchor="bottom" icon="/icon/time.png"
                     factoryClass="com.gome.idea.plugins.time.tw.TimeToolWindow"/>
     </extensions>

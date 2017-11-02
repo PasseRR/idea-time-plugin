@@ -15,7 +15,6 @@ buildscript {
 apply plugin: 'idea'
 apply plugin: 'groovy'
 apply plugin: 'org.jetbrains.intellij'
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
 repositories {
     mavenCentral()
@@ -30,9 +29,17 @@ intellij {
 //    pluginName 'Gome Time'
 }
 
+tasks.withType(GroovyCompile) {
+    groovyOptions.encoding = "UTF-8"
+}
+
+tasks.withType(JavaCompile) {
+    options.encoding = "UTF-8"
+}
+
 dependencies {
 //    compile 'org.codehaus.groovy:groovy-all:2.4.6'
-    compile('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'){
+    compile('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1') {
         // 会导致异常
         exclude group: 'xerces'
     }

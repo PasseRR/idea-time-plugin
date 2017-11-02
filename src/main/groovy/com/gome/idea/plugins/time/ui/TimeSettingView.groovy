@@ -30,8 +30,12 @@ class TimeSettingView extends IdeaView {
                             label(text: "服务器")
                         }
                         td {
-                            def url = settings.getUrl()
-                            this.urlField = textField(name: "url", text: url ? url : "http://10.112.70.1", preferredSize: dimension, toolTipText: "工时系统服务器地址, 以http开始")
+                            this.urlField = sb.textField(
+                                name: "url",
+                                text: settings.getUrl(),
+                                preferredSize: dimension,
+                                toolTipText: "工时系统服务器地址(如:http://10.112.70.1)"
+                            )
                         }
                         td {
                             button(text: "测试链接", actionPerformed: {
@@ -43,18 +47,28 @@ class TimeSettingView extends IdeaView {
                     }
                     tr {
                         td {
-                            label(text: "用户名", toolTipText: "工时系统用户名")
+                            label(text: "用户名")
                         }
                         td {
-                            this.userNameField = textField(name: "userName", text: settings.getUserName(), preferredSize: dimension)
+                            this.userNameField = textField(
+                                name: "userName",
+                                text: settings.getUserName(),
+                                preferredSize: dimension,
+                                toolTipText: "工时系统用户名"
+                            )
                         }
                     }
                     tr {
                         td {
-                            label(text: "密码", toolTipText: "工时系统用户名")
+                            label(text: "密码")
                         }
                         td {
-                            this.passField = passwordField(name: "password", text: settings.getPassword(), preferredSize: dimension)
+                            this.passField = passwordField(
+                                name: "password",
+                                text: settings.getPassword(),
+                                preferredSize: dimension,
+                                toolTipText: "工时系统用户名"
+                            )
                         }
                         td {
                             button(text: "测试登录", actionPerformed: {
