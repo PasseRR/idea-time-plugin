@@ -2,6 +2,7 @@ package com.gome.idea.plugins.time.ui
 
 import com.gome.idea.plugins.time.http.TimeHttpClient
 import com.gome.idea.plugins.time.utils.DateUtils
+import com.gome.idea.plugins.time.utils.HourUtils
 import com.gome.idea.plugins.time.utils.NotificationUtils
 import com.gome.idea.plugins.time.vo.DayVo
 import com.gome.idea.plugins.time.vo.MonthVo
@@ -35,7 +36,7 @@ class TimeToolWindowView extends IdeaView {
     // 项目
     def JComboBox comboBox3
     // 工时
-    def JTextField hourTextField
+    def JComboBox comboBox4
     // 简述
     def JTextField commentTextField
     // cache instance by project
@@ -347,7 +348,19 @@ class TimeToolWindowView extends IdeaView {
             }
         })
 
-        this.hourTextField = sb.textField(preferredSize: new Dimension(60, 25))
+        this.comboBox4 = sb.comboBox(items: HourUtils.getHours(),
+            selectedIndex: 7, renderer: new BasicComboBoxRenderer() {
+            @Override
+            Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+                if (value) {
+                    super.setText(String.valueOf((value as Map).get("text")))
+                }
+
+                this
+            }
+        })
+
         this.commentTextField = sb.textField(preferredSize: new Dimension(145, 25))
 
         // 明细面板
@@ -381,7 +394,7 @@ class TimeToolWindowView extends IdeaView {
                                         label(text: "工时")
                                     }
                                     td {
-                                        widget(this.hourTextField)
+                                        widget(this.comboBox4)
                                     }
                                     td {
                                         label(text: "简述")
@@ -392,17 +405,6 @@ class TimeToolWindowView extends IdeaView {
                                     td {
                                         button(icon: sb.imageIcon(url: this.getClass().getResource("/icon/add.png")),
                                             text: "添加", toolTipText: "添加", actionPerformed: {
-                                            String hour = this.hourTextField.getText()
-                                            if (!hour) {
-                                                NotificationUtils.notify("工时添加", "工时不能为空!", false)
-                                                return
-                                            }
-                                            try {
-                                                Double.valueOf(hour)
-                                            } catch (Exception e) {
-                                                NotificationUtils.notify("工时添加", "工时必须为数字!", false)
-                                                return
-                                            }
                                             String comment = this.commentTextField.getText()
                                             if (comment && comment.length() > 20) {
                                                 NotificationUtils.notify("工时添加", "简述长度不能超过20!", false)
@@ -410,7 +412,7 @@ class TimeToolWindowView extends IdeaView {
                                             }
                                             NotificationUtils.notify(
                                                 "工时添加",
-                                                TimeHttpClient.saveHours(this.getSaveHourRequest(date, hour, comment)) as boolean
+                                                TimeHttpClient.saveHours(this.getSaveHourRequest(date, comment)) as boolean
                                             )
                                             // 重新加载明细
                                             this.detailPanel(this.selectedDay)
@@ -548,18 +550,20 @@ class TimeToolWindowView extends IdeaView {
             }
         }, 1)
         // repaint panel
-        rootPanel.revalidate()
+        rootPanel.validate()
+        rootPanel.repaint()
     }
 
-    def private getSaveHourRequest(long day, String hour, String content) {
+    def private getSaveHourRequest(long day, String content) {
         def combo1 = this.comboBox1.getSelectedItem() as Map
         def combo2 = this.comboBox2.getSelectedItem() as Map
         def combo3 = this.comboBox3.getSelectedItem() as Map
+        def combo4 = this.comboBox4.getSelectedItem() as Map
 
         [
             attendanceTypeId: combo1.get("id") as int,
             manhourTypeId   : combo2.get("id"),
-            hour            : hour,
+            hour            : combo4.get("value") as String,
             content         : content ? content : "",
             day             : day as String,
             // 若可用则为正常出勤 否则为缺勤

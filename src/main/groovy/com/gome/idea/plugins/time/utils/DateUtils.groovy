@@ -1,5 +1,6 @@
 package com.gome.idea.plugins.time.utils
 /**
+ * 日期工具类
  * @author xiehai1
  * @date 2017/10/27 22:12
  * @Copyright ( c ) gome inc Gome Co.,LTD
@@ -36,6 +37,11 @@ class DateUtils {
         sb.toString()
     }
 
+    /**
+     * long型转时间字符串
+     * @param datetime
+     * @return yyyy-MM-dd HH:mm:ss
+     */
     def static longToDateTimeString(long datetime) {
         Calendar calendar = Calendar.getInstance()
         calendar.setTime(new Date(datetime))

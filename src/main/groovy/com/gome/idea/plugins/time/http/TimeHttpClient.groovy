@@ -83,10 +83,10 @@ class TimeHttpClient {
     }
 
     /**
-     * 重新登录并保存cookie 根据已经设置的地址、用户名、密码
+     * 登录并保存cookie 根据已经设置的地址、用户名、密码
      * @return
      */
-    def private static retryCookie() {
+    def static tryCookie() {
         return login(SETTINGS.getUrl(), SETTINGS.getUserName(), SETTINGS.getPassword())
     }
 
@@ -120,7 +120,7 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试一次
             return listMonth0(startDay, endDay, true)
         }
@@ -150,7 +150,7 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试一次
             return listDraft0(day, true)
         }
@@ -175,7 +175,7 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试一次
             return listAudit0(day, true)
         }
@@ -204,7 +204,7 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试一次
             return deleteDraft0(id, true)
         }
@@ -235,7 +235,7 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试一次
             return submitDraft0(id, true)
         }
@@ -269,7 +269,7 @@ class TimeHttpClient {
 
         if (!flag && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试
             listAttendanceTypes(true)
         }
@@ -307,7 +307,7 @@ class TimeHttpClient {
 
         if (!flag && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试
             listByAttendanceTypes(id, true)
         }
@@ -339,7 +339,7 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试一次
             return listProjects0(true)
         }
@@ -370,7 +370,7 @@ class TimeHttpClient {
 
         if (!isRetried && !respJson['success']) {
             // 如果session超时 再次登录
-            retryCookie()
+            tryCookie()
             // 重试一次
             return saveHours0(requestBody, true)
         }

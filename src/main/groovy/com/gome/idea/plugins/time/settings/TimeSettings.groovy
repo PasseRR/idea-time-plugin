@@ -53,4 +53,12 @@ class TimeSettings implements PersistentStateComponent<Element> {
     def static TimeSettings getInstance() {
         ServiceManager.getService(TimeSettings.class)
     }
+
+    /**
+     * url、用户名、密码均不为空为合法
+     * @return
+     */
+    def isLegal(){
+        this.url && this.userName && this.password
+    }
 }

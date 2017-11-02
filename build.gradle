@@ -33,6 +33,7 @@ intellij {
 dependencies {
 //    compile 'org.codehaus.groovy:groovy-all:2.4.6'
     compile('org.codehaus.groovy.modules.http-builder:http-builder:0.7.1'){
+        // 会导致异常
         exclude group: 'xerces'
     }
     testCompile group: 'junit', name: 'junit', version: '4.11'
