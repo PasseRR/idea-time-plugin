@@ -30,19 +30,19 @@ class TimeSettingView extends IdeaView {
                             label(text: "服务器")
                         }
                         td {
-                            this.urlField = textField(name: "url", text: settings.getUrl(), preferredSize: dimension)
+                            this.urlField = textField(name: "url", text: settings.getUrl(), preferredSize: dimension, toolTipText: "工时系统服务器地址, 以http开始")
                         }
                         td {
                             button(text: "测试链接", actionPerformed: {
                                 TimeHttpClient.enableConnect(this.urlField.getText()) ?
                                     Messages.showMessageDialog("连接成功!", "Time", Messages.getInformationIcon()) :
                                     Messages.showMessageDialog("连接失败!", "Time", Messages.getErrorIcon())
-                            })
+                            }, toolTipText: "测试工时系统是否可以访问")
                         }
                     }
                     tr {
                         td {
-                            label(text: "用户名")
+                            label(text: "用户名", toolTipText: "工时系统用户名")
                         }
                         td {
                             this.userNameField = textField(name: "userName", text: settings.getUserName(), preferredSize: dimension)
@@ -50,7 +50,7 @@ class TimeSettingView extends IdeaView {
                     }
                     tr {
                         td {
-                            label(text: "密码")
+                            label(text: "密码", toolTipText: "工时系统用户名")
                         }
                         td {
                             this.passField = passwordField(name: "password", text: settings.getPassword(), preferredSize: dimension)
@@ -63,7 +63,7 @@ class TimeSettingView extends IdeaView {
                                     String.valueOf(this.passField.getPassword())
                                 ) ? Messages.showMessageDialog("登录成功!", "Time", Messages.getInformationIcon()) :
                                     Messages.showMessageDialog("登录失败!", "Time", Messages.getErrorIcon())
-                            })
+                            }, toolTipText: "测试是否可以登录")
                         }
                     }
                 }
