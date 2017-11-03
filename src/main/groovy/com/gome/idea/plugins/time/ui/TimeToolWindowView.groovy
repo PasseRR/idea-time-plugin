@@ -1,6 +1,7 @@
 package com.gome.idea.plugins.time.ui
 
 import com.gome.idea.plugins.time.http.TimeHttpClient
+import com.gome.idea.plugins.time.layout.VerticalLayout
 import com.gome.idea.plugins.time.utils.DateUtils
 import com.gome.idea.plugins.time.utils.HourUtils
 import com.gome.idea.plugins.time.utils.NotificationUtils
@@ -361,191 +362,185 @@ class TimeToolWindowView extends IdeaView {
             }
         })
 
-        this.commentTextField = sb.textField(preferredSize: new Dimension(145, 25))
+        this.commentTextField = sb.textField(preferredSize: new Dimension(155, 25))
 
         // 明细面板
-        rootPanel.add(super.sb.panel() {
-            tableLayout {
-                tr {
-                    td {
-                        panel(border: titledBorder(title: DateUtils.longToDateString(date))) {
-                            tableLayout {
-                                tr {
-                                    td {
-                                        label(text: "工时对象")
-                                    }
-                                    td {
-                                        // 默认选中项目出勤
-                                        widget(this.comboBox1)
-                                    }
-                                    td {
-                                        label(text: "工时分类")
-                                    }
-                                    td {
-                                        widget(this.comboBox2)
-                                    }
-                                    td {
-                                        label(text: "项目名称")
-                                    }
-                                    td {
-                                        widget(this.comboBox3)
-                                    }
-                                    td {
-                                        label(text: "工时")
-                                    }
-                                    td {
-                                        widget(this.comboBox4)
-                                    }
-                                    td {
-                                        label(text: "简述")
-                                    }
-                                    td {
-                                        widget(this.commentTextField)
-                                    }
-                                    td {
-                                        button(icon: sb.imageIcon(url: this.getClass().getResource("/icon/add.png")),
-                                            text: "添加", toolTipText: "添加", actionPerformed: {
-                                            String comment = this.commentTextField.getText()
-                                            if (comment && comment.length() > 20) {
-                                                NotificationUtils.notify("工时添加", "简述长度不能超过20!", false)
-                                                return
-                                            }
-                                            NotificationUtils.notify(
-                                                "工时添加",
-                                                TimeHttpClient.saveHours(this.getSaveHourRequest(date, comment)) as boolean
-                                            )
-                                            // 重新加载明细
-                                            this.detailPanel(this.selectedDay)
-                                        })
-                                    }
-                                }
-                            }
+        rootPanel.add(super.sb.panel(layout: new VerticalLayout(true, true)) {
+            panel(border: titledBorder(title: "<html><b>${DateUtils.longToDateString(date)}</b></html")) {
+                tableLayout {
+                    tr {
+                        td {
+                            label(text: "工时对象")
                         }
-                    }
-                }
-                tr {
-                    td {
-                        // 草稿箱面板
-                        panel(border: titledBorder(title: "工时草稿箱"), layout: borderLayout()) {
-                            def JTable tab = table(background: super.scrollPane.getBackground(),
-                                // 只能选中单行
-                                selectionMode: ListSelectionModel.SINGLE_SELECTION) {
-                                tableModel(list: draft) {
-                                    propertyColumn(header: "ID", propertyName: "id", editable: false)
-                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer() {
-                                        @Override
-                                        protected void setValue(Object value) {
-                                            this.setText(DateUtils.longToDateString(value as long))
-                                        }
-                                    })
-                                    propertyColumn(header: "工时对象", propertyName: "attendanceTypeName", editable: false)
-                                    propertyColumn(header: "工时分类", propertyName: "manhourTypeName", editable: false)
-                                    propertyColumn(header: "项目", propertyName: "projectName", editable: false, preferredWidth: 90)
-                                    propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
-                                    propertyColumn(header: "工时", propertyName: "hour", editable: false)
-                                    propertyColumn(header: "简述", propertyName: "content", editable: false)
-                                    propertyColumn(header: "创建时间", propertyName: "createTime", editable: false, preferredWidth: 150, cellRenderer: new DefaultTableCellRenderer() {
-                                        @Override
-                                        protected void setValue(Object value) {
-                                            this.setText(DateUtils.longToDateTimeString(value as long))
-                                        }
-                                    })
+                        td {
+                            // 默认选中项目出勤
+                            widget(this.comboBox1)
+                        }
+                        td {
+                            label(text: "工时分类")
+                        }
+                        td {
+                            widget(this.comboBox2)
+                        }
+                        td {
+                            label(text: "项目名称")
+                        }
+                        td {
+                            widget(this.comboBox3)
+                        }
+                        td {
+                            label(text: "工时")
+                        }
+                        td {
+                            widget(this.comboBox4)
+                        }
+                        td {
+                            label(text: "简述")
+                        }
+                        td {
+                            widget(this.commentTextField)
+                        }
+                        td {
+                            button(icon: sb.imageIcon(url: this.getClass().getResource("/icon/add.png")),
+                                text: "添加", toolTipText: "添加", actionPerformed: {
+                                String comment = this.commentTextField.getText()
+                                if (comment && comment.length() > 20) {
+                                    NotificationUtils.notify("工时添加", "简述长度不能超过20!", false)
+                                    return
                                 }
-                            }
-                            // 右键菜单
-                            def menu = sb.popupMenu {
-                                menuItem(
-                                    text: "删除草稿",
-                                    icon: imageIcon(url: this.getClass().getResource("/icon/delete.png")),
-                                    actionPerformed: {
-                                        int index = tab.getSelectedRow()
-                                        if (-1 != index) {
-                                            def id = tab.getValueAt(index, 0) as int
-                                            NotificationUtils.notify("删除草稿", TimeHttpClient.deleteDraft(id) as boolean)
-                                            // 重新加载明细
-                                            this.detailPanel(this.selectedDay)
-                                        }
-                                    }
+                                NotificationUtils.notify(
+                                    "工时添加",
+                                    TimeHttpClient.saveHours(this.getSaveHourRequest(date, comment)) as boolean
                                 )
-                                separator()
-                                menuItem(
-                                    text: "提交审核",
-                                    icon: imageIcon(url: this.getClass().getResource("/icon/audit.png")),
-                                    actionPerformed: {
-                                        int index = tab.getSelectedRow()
-                                        if (-1 != index) {
-                                            def id = tab.getValueAt(index, 0) as int
-                                            NotificationUtils.notify("提交审核", TimeHttpClient.submitDraft(id) as boolean)
-                                            // 重新加载明细
-                                            this.detailPanel(this.selectedDay)
-                                        }
-                                    }
-                                )
-                            }
-                            tab.addMouseListener(new MouseAdapter() {
-                                @Override
-                                void mouseClicked(MouseEvent e) {
-                                    if (e.getButton() == MouseEvent.BUTTON3) {
-                                        def index = tab.rowAtPoint(e.getPoint())
-                                        if (index == -1) {
-                                            return
-                                        }
-                                        tab.setRowSelectionInterval(index, index)
-                                        menu.show(tab, e.getX(), e.getY())
-                                    }
-                                }
+                                // 重新加载明细
+                                this.detailPanel(this.selectedDay)
                             })
-                            widget(constraints: BorderLayout.NORTH, tab.tableHeader)
-                            widget(constraints: BorderLayout.CENTER, tab)
                         }
                     }
                 }
-                tr {
-                    td {
-                        panel(border: titledBorder(title: "已提交工时"), layout: borderLayout()) {
-                            def tab = table(background: super.scrollPane.getBackground(), enabled: false) {
-                                tableModel(list: audit) {
-                                    propertyColumn(header: "ID", propertyName: "id", editable: false)
-                                    propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer() {
-                                        @Override
-                                        protected void setValue(Object value) {
-                                            this.setText(DateUtils.longToDateString(value as long))
-                                        }
-                                    })
-                                    propertyColumn(header: "工时对象", propertyName: "attendanceTypeName", editable: false)
-                                    propertyColumn(header: "工时分类", propertyName: "manhourTypeName", editable: false)
-                                    propertyColumn(header: "项目", propertyName: "projectName", editable: false, preferredWidth: 90)
-                                    propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
-                                    propertyColumn(header: "工时", propertyName: "hour", editable: false)
-                                    propertyColumn(header: "简述", propertyName: "content", editable: false)
-                                    propertyColumn(header: "审核状态", propertyName: "auditType", editable: false, cellRenderer: new DefaultTableCellRenderer() {
-                                        @Override
-                                        protected void setValue(Object value) {
-                                            int auditStatus = value as int
-                                            switch (auditStatus) {
-                                                case 2:
-                                                    this.setText("审核中")
-                                                    this.setForeground(Color.YELLOW)
-                                                    break
-                                                case 3:
-                                                    this.setText("审核通过")
-                                                    this.setForeground(Color.GREEN)
-                                                    break
-                                                case 4:
-                                                    this.setText("审核未通过")
-                                                    this.setForeground(Color.RED)
-                                                    break
-                                                default: break
-                                            }
-                                        }
-                                    })
-                                    propertyColumn(header: "审核意见", propertyName: "auditComment", editable: false)
-                                }
+            }
+            // 草稿箱面板
+            panel(border: titledBorder(title: "工时草稿箱"), layout: new VerticalLayout(0, 0)) {
+                def JTable tab = table(background: super.scrollPane.getBackground(),
+                    // 只能选中单行
+                    selectionMode: ListSelectionModel.SINGLE_SELECTION) {
+                    tableModel(list: draft) {
+                        propertyColumn(header: "ID", propertyName: "id", editable: false)
+                        propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer() {
+                            @Override
+                            protected void setValue(Object value) {
+                                this.setText(DateUtils.longToDateString(value as long))
                             }
-                            widget(constraints: BorderLayout.NORTH, tab.tableHeader)
-                            widget(constraints: BorderLayout.CENTER, tab)
+                        })
+                        propertyColumn(header: "工时对象", propertyName: "attendanceTypeName", editable: false)
+                        propertyColumn(header: "工时分类", propertyName: "manhourTypeName", editable: false)
+                        propertyColumn(header: "项目", propertyName: "projectName", editable: false, preferredWidth: 90)
+                        propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
+                        propertyColumn(header: "工时", propertyName: "hour", editable: false)
+                        propertyColumn(header: "简述", propertyName: "content", editable: false)
+                        propertyColumn(header: "创建时间", propertyName: "createTime", editable: false, preferredWidth: 150, cellRenderer: new DefaultTableCellRenderer() {
+                            @Override
+                            protected void setValue(Object value) {
+                                this.setText(DateUtils.longToDateTimeString(value as long))
+                            }
+                        })
+                    }
+                }
+                // 右键菜单
+                def menu = sb.popupMenu {
+                    menuItem(
+                        text: "删除草稿",
+                        icon: imageIcon(url: this.getClass().getResource("/icon/delete.png")),
+                        actionPerformed: {
+                            int index = tab.getSelectedRow()
+                            if (-1 != index) {
+                                def id = tab.getValueAt(index, 0) as int
+                                NotificationUtils.notify("删除草稿", TimeHttpClient.deleteDraft(id) as boolean)
+                                // 重新加载明细
+                                this.detailPanel(this.selectedDay)
+                            }
+                        }
+                    )
+                    separator()
+                    menuItem(
+                        text: "提交审核",
+                        icon: imageIcon(url: this.getClass().getResource("/icon/audit.png")),
+                        actionPerformed: {
+                            int index = tab.getSelectedRow()
+                            if (-1 != index) {
+                                def id = tab.getValueAt(index, 0) as int
+                                NotificationUtils.notify("提交审核", TimeHttpClient.submitDraft(id) as boolean)
+                                // 重新加载明细
+                                this.detailPanel(this.selectedDay)
+                            }
+                        }
+                    )
+                }
+                tab.addMouseListener(new MouseAdapter() {
+                    @Override
+                    void mouseClicked(MouseEvent e) {
+                        if (e.getButton() == MouseEvent.BUTTON3) {
+                            def index = tab.rowAtPoint(e.getPoint())
+                            if (index == -1) {
+                                return
+                            }
+                            tab.setRowSelectionInterval(index, index)
+                            menu.show(tab, e.getX(), e.getY())
                         }
                     }
+                })
+                widget(tab.tableHeader)
+                if(!draft){
+                    widget(sb.label(text: "没有数据"), preferredSize: tab.tableHeader.preferredSize)
+                }else{
+                    widget(tab)
+                }
+            }
+            panel(border: titledBorder(title: "已提交工时"), layout: new VerticalLayout(0, 0)) {
+                def JTable tab = table(background: super.scrollPane.getBackground(), enabled: false) {
+                    tableModel(list: audit) {
+                        propertyColumn(header: "ID", propertyName: "id", editable: false)
+                        propertyColumn(header: "日期", propertyName: "day", editable: false, cellRenderer: new DefaultTableCellRenderer() {
+                            @Override
+                            protected void setValue(Object value) {
+                                this.setText(DateUtils.longToDateString(value as long))
+                            }
+                        })
+                        propertyColumn(header: "工时对象", propertyName: "attendanceTypeName", editable: false)
+                        propertyColumn(header: "工时分类", propertyName: "manhourTypeName", editable: false)
+                        propertyColumn(header: "项目", propertyName: "projectName", editable: false, preferredWidth: 90)
+                        propertyColumn(header: "项目经理", propertyName: "projectManagerName", editable: false)
+                        propertyColumn(header: "工时", propertyName: "hour", editable: false)
+                        propertyColumn(header: "简述", propertyName: "content", editable: false)
+                        propertyColumn(header: "审核状态", propertyName: "auditType", editable: false, cellRenderer: new DefaultTableCellRenderer() {
+                            @Override
+                            protected void setValue(Object value) {
+                                int auditStatus = value as int
+                                switch (auditStatus) {
+                                    case 2:
+                                        this.setText("审核中")
+                                        this.setForeground(Color.YELLOW)
+                                        break
+                                    case 3:
+                                        this.setText("审核通过")
+                                        this.setForeground(Color.GREEN)
+                                        break
+                                    case 4:
+                                        this.setText("审核未通过")
+                                        this.setForeground(Color.RED)
+                                        break
+                                    default: break
+                                }
+                            }
+                        })
+                        propertyColumn(header: "审核意见", propertyName: "auditComment", editable: false)
+                    }
+                }
+                widget(tab.tableHeader)
+                if(!audit){
+                    widget(sb.label(text: "没有数据"), preferredSize: tab.tableHeader.preferredSize)
+                }else{
+                    widget(tab)
                 }
             }
         }, 1)
