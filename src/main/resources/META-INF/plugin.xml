@@ -20,6 +20,12 @@
           <p>
             v1.1
             <ul>
+              <li>fixed today view bug</li>
+            </ul>
+          </p>
+          <p>
+            v1.1
+            <ul>
               <li>update layout</li>
               <li>highlight selected date</li>
               <li>no record hint</li>
