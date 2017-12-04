@@ -22,4 +22,6 @@ class DayVo {
     def workHours
     // 当天已审核调休
     def restHours
+    // 审批中工时
+    def auditingHours
 }

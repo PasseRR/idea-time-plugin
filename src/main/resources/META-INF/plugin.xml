@@ -18,7 +18,13 @@
     <change-notes>
         <![CDATA[
           <p>
-            v1.1
+            v1.3
+            <ul>
+              <li>backend api upgrade</li>
+            </ul>
+          </p>
+          <p>
+            v1.2
             <ul>
               <li>fixed today view bug</li>
             </ul>
