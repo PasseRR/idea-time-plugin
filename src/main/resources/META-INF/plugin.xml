@@ -5,7 +5,7 @@
         PasseRR
     </vendor>
 
-    <version>v1.4</version>
+    <version>v1.5</version>
 
     <description>
         <![CDATA[
@@ -17,6 +17,12 @@
 
     <change-notes>
         <![CDATA[
+          <p>
+            v1.5
+            <ul>
+              <li>update layout</li>
+            </ul>
+          </p>
           <p>
             v1.4
             <ul>

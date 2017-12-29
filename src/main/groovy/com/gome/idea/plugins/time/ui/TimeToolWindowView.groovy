@@ -309,9 +309,10 @@ class TimeToolWindowView extends IdeaView {
         def rootPanel = super.scrollPane.getViewport().getView() as JPanel
         rootPanel.remove(1)
         def audit = TimeHttpClient.listAudit(date)
-
+        def dimesion = new Dimension(180, 25)
         // 默认选中项目出勤
         this.comboBox1 = sb.comboBox(items: TimeHttpClient.getAttendanceTypes(),
+            preferredSize: dimesion,
             selectedIndex: 2, renderer: new BasicComboBoxRenderer() {
             @Override
             Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -344,6 +345,22 @@ class TimeToolWindowView extends IdeaView {
         // 工时分类
         // 默认选中开发工作
         this.comboBox2 = sb.comboBox(items: TimeHttpClient.getByAttendanceTypes(this.getComboBox1SelectedId()),
+            preferredSize: dimesion,
+            renderer: new BasicComboBoxRenderer() {
+                @Override
+                Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
+                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
+                    if (value) {
+                        super.setText(String.valueOf((value as Map).get("name")))
+                    }
+
+                    this
+                }
+            })
+
+        // 项目选择
+        this.comboBox3 = sb.comboBox(items: TimeHttpClient.listProjects(),
+            preferredSize: dimesion,
             renderer: new BasicComboBoxRenderer() {
             @Override
             Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -356,20 +373,8 @@ class TimeToolWindowView extends IdeaView {
             }
         })
 
-        // 项目选择
-        this.comboBox3 = sb.comboBox(items: TimeHttpClient.listProjects(), renderer: new BasicComboBoxRenderer() {
-            @Override
-            Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus)
-                if (value) {
-                    super.setText(String.valueOf((value as Map).get("name")))
-                }
-
-                this
-            }
-        })
-
         this.comboBox4 = sb.comboBox(items: HourUtils.getHours(),
+            preferredSize: dimesion,
             selectedIndex: 7, renderer: new BasicComboBoxRenderer() {
             @Override
             Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
@@ -382,7 +387,7 @@ class TimeToolWindowView extends IdeaView {
             }
         })
 
-        this.commentTextField = sb.textField(preferredSize: new Dimension(155, 25))
+        this.commentTextField = sb.textField(preferredSize: dimesion)
 
         // 明细面板
         rootPanel.add(super.sb.panel(layout: new VerticalLayout(true, true)) {
@@ -408,6 +413,8 @@ class TimeToolWindowView extends IdeaView {
                         td {
                             widget(this.comboBox3)
                         }
+                    }
+                    tr {
                         td {
                             label(text: "工时")
                         }
@@ -478,10 +485,10 @@ class TimeToolWindowView extends IdeaView {
                                 }
                             }
                         })
-                        propertyColumn(header: "审核意见", propertyName: "auditComment", editable: false)
+//                        propertyColumn(header: "审核意见", propertyName: "auditComment", editable: false)
                     }
                 }
-                 // 右键菜单
+                // 右键菜单
                 def menu = sb.popupMenu {
                     menuItem(
                         text: "删除",
@@ -508,7 +515,7 @@ class TimeToolWindowView extends IdeaView {
                             tab.setRowSelectionInterval(index, index)
                             def status = tab.getValueAt(index, 8) as int
                             // 审核中的可以删除
-                            if(status != 2){
+                            if (status != 2) {
                                 return
                             }
                             menu.show(tab, e.getX(), e.getY())
