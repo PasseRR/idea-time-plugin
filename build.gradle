@@ -1,5 +1,5 @@
 group 'com.gome.idea.plugins'
-version '1.3'
+version '1.4'
 
 buildscript {
     repositories {
@@ -22,9 +22,9 @@ repositories {
 
 intellij {
     // 不修改plugin.xml的idea-version
-    intellij.updateSinceUntilBuild false
+    updateSinceUntilBuild false
     //IntelliJ IDEA 2016.3 dependency; for a full list of IntelliJ IDEA releases please see https://www.jetbrains.com/intellij-repository/releases
-//    version '162.1628.40'
+    version '162.1628.40'
 //    plugins 'coverage'
 //    pluginName 'Gome Time'
 }

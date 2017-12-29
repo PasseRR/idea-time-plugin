@@ -249,7 +249,7 @@ class TimeToolWindowView extends IdeaView {
         // 设置button宽度高度
         def button = super.sb.button(
             enabled: day.isCurrentMonth,
-            preferredSize: new Dimension(60, 40),
+            preferredSize: new Dimension(70, 40),
             actionCommand: day.datetime as String,
             actionPerformed: { ActionEvent event ->
                 // 按钮命令
