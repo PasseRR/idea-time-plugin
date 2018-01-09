@@ -38,8 +38,8 @@ class NotificationUtils {
 
         // 异步让提示隐藏
         new Thread({
-            TimeUnit.SECONDS.sleep(1)
+            TimeUnit.SECONDS.sleep(4)
             n.expire()
-        })
+        }).start()
     }
 }

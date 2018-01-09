@@ -427,7 +427,7 @@ class TimeToolWindowView extends IdeaView {
                         td {
                             widget(this.commentTextField)
                         }
-                        td {
+                        td(colspan: 2) {
                             button(icon: sb.imageIcon(url: this.getClass().getResource("/icon/add.png")),
                                 text: "添加", toolTipText: "添加", actionPerformed: {
                                 String comment = this.commentTextField.getText()
